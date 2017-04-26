@@ -1,40 +1,57 @@
-sentry-redis:
-  image: redis
+version: '2'
 
-sentry-postgres:
-  image: postgres
-  environment:
-    - POSTGRES_USER=sentry
-    - POSTGRES_PASSWORD=sentry
-  volumes:
-    - /var/lib/postgresql/data
-
-sentry:
-  image: sentry
-  links:
-   - sentry-redis:redis
-   - sentry-postgres:postgres
-  environment:
-    - SENTRY_SECRET_KEY=sentrysecretkey
-  ports:
-   - 9000:9000
-  stdin_open: true
-  tty: true
-
-sentry-cron:
-  image: sentry
-  links:
-   - sentry-redis:redis
-   - sentry-postgres:postgres
-  environment:
-    - SENTRY_SECRET_KEY=sentrysecretkey
-  command: "sentry run cron"
-
-sentry-worker:
-  image: sentry
-  links:
-   - sentry-redis:redis
-   - sentry-postgres:postgres
-  environment:
-    - SENTRY_SECRET_KEY=sentrysecretkey
-  command: "sentry run worker"
+volumes:                                                                                                                                   
+  sentry-db:                                                                                                                               
+   
+services:   
+  sentry-redis:                                                                                                                            
+    image: redis                                                                                                                           
+                                                                                                                                           
+  sentry-postgres:                                                                                                                         
+    image: postgres                                                                                                                        
+    environment:                                                                                                                           
+      POSTGRES_USER: sentry                                                                                                               
+      POSTGRES_PASSWORD: sentry                                                                                                           
+    volumes:                                                                                                                               
+      - sentry-db:/var/lib/postgresql/data                                                                                                 
+                                                                                                                                           
+  sentry:                                                                                                                                  
+    image: sentry 
+    links:                                                                                                                                 
+     - sentry-redis                                                                                                                  
+     - sentry-postgres                                                                                                         
+    environment:                                                                                                                           
+      SENTRY_SECRET_KEY: sentrysecretkey
+      SENTRY_POSTGRES_HOST: sentry-postgres
+      SENTRY_DB_USER: sentry
+      SENTRY_DB_PASSWORD: sentry
+      SENTRY_REDIS_HOST: sentry-redis
+    ports:                                                                                                                                 
+     - 9000:9000                                                                                                                                  
+                                                                                                                                           
+  sentry-cron:                                                                                                                             
+    image: sentry                                                                                                                          
+    links:                                                                                                                                 
+     - sentry-redis                                                                                                                  
+     - sentry-postgres                                                                                                            
+    environment:                                                                                                                            
+      SENTRY_SECRET_KEY: sentrysecretkey  
+      SENTRY_POSTGRES_HOST: sentry-postgres
+      SENTRY_DB_USER: sentry
+      SENTRY_DB_PASSWORD: sentry
+      SENTRY_REDIS_HOST: sentry-redis                                                                                              
+    command: "sentry run cron"                                                                                                             
+                                                                                                                                           
+  sentry-worker:                                                                                                                           
+    image: sentry                                                                                                                          
+    links:                                                                                                                                 
+     - sentry-redis                                                                                                                  
+     - sentry-postgres                                                                                                            
+    environment:                                                                                                                             
+      SENTRY_SECRET_KEY: sentrysecretkey  
+      SENTRY_POSTGRES_HOST: sentry-postgres
+      SENTRY_DB_USER: sentry
+      SENTRY_DB_PASSWORD: sentry
+      SENTRY_REDIS_HOST: sentry-redis                                                                                          
+    command: "sentry run worker"                                                                                                           
+                                                                                                                                           
